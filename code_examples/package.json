@@ -1,0 +1,73 @@
+{
+  "name": "crm-platform",
+  "version": "1.0.0-alpha",
+  "description": "Enterprise CRM Platform - Open Source",
+  "main": "dist/src/index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "nodemon --exec ts-node src/index.ts",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "tsc && cd frontend && npm run build",
+    "build:backend": "tsc",
+    "build:frontend": "cd frontend && npm run build",
+    "start": "node dist/src/index.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "db:migrate": "psql -U crm_app_user -d crm_db -f scripts/database-schema.sql",
+    "db:seed": "ts-node scripts/seed.ts",
+    "docker:build": "docker build -t crm-platform:latest .",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "typescript": "^5.2.0",
+    "pg": "^8.11.0",
+    "uuid": "^9.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.3.1",
+    "helmet": "^7.0.0",
+    "cors": "^2.8.5",
+    "morgan": "^1.10.0",
+    "joi": "^17.10.0",
+    "redis": "^4.6.7",
+    "amqplib": "^0.10.3",
+    "nodemailer": "^6.9.5",
+    "axios": "^1.5.0",
+    "pino": "^8.15.1",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.17",
+    "@types/node": "^20.3.1",
+    "@types/jest": "^29.5.2",
+    "ts-node": "^10.9.1",
+    "nodemon": "^3.0.1",
+    "concurrently": "^8.1.0",
+    "jest": "^29.5.0",
+    "ts-jest": "^29.1.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.44.0",
+    "prettier": "^3.0.0"
+  },
+  "keywords": [
+    "crm",
+    "customer-relationship-management",
+    "sales",
+    "contact-management",
+    "deals",
+    "pipeline"
+  ],
+  "author": "CRM Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}
