@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ядро — платформа для бизнеса</title>
+<meta name="description" content="Ядро — единая платформа для работы с клиентами, задачами и бизнес-процессами. Для компаний Центральной Азии.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* =========================================================
+   TOKENS — единый источник значений. Все размеры — чётные.
+   ========================================================= */
+:root{
+  /* spacing (8pt, 4 — полушаг) */
+  --space-2xs:4px; --space-xs:8px; --space-sm:12px; --space-md:16px;
+  --space-lg:24px; --space-xl:32px; --space-2xl:48px; --space-3xl:64px;
+  --space-4xl:96px; --space-5xl:128px;
+
+  /* radius */
+  --radius-xs:4px; --radius-sm:8px; --radius-md:12px; --radius-lg:16px;
+  --radius-xl:24px; --radius-full:999px;
+
+  /* type scale */
+  --font:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --text-xs:12px; --text-sm:14px; --text-md:16px; --text-lg:18px;
+  --text-xl:20px; --text-2xl:24px; --text-3xl:32px; --text-4xl:40px;
+  --text-5xl:56px;
+  --lh-tight:1.2; --lh-body:1.5;
+  --weight-regular:400; --weight-medium:500; --weight-semibold:600; --weight-bold:700;
+
+  /* layout */
+  --container:1200px; --gutter:16px; --header-h:64px; --control-h:48px;
+  --border-w:1px; --focus-w:2px;
+
+  /* module colors — система модулей */
+  --module-customers:#7c3aed;      /* Клиенты — фиолетовый */
+  --module-task:#0891b2;           /* Задачи — циан */
+  --module-business:#0d9488;       /* Бизнес — бирюзовый */
+  --module-admin:#2563eb;          /* Администрирование — синий */
+
+  /* semantic color — light */
+  --bg:#ffffff;
+  --surface:#f6f7fb;
+  --surface-raised:#ffffff;
+  --on-surface:#0f172a;
+  --muted:#4b5563;
+  --subtle:#6b7280;
+  --border:#e5e7eb;
+  --primary:#4338ca;
+  --primary-hover:#3730a3;
+  --on-primary:#ffffff;
+  --primary-soft:#eef2ff;
+  --success:#15803d; --success-soft:#dcfce7;
+  --danger:#b91c1c;  --danger-soft:#fee2e2;
+  --focus:#4338ca;
+  --shadow-sm:0 2px 4px rgba(15,23,42,.06);
+  --shadow-lg:0 24px 48px rgba(15,23,42,.12);
+  --hero-glow:radial-gradient(60% 60% at 50% 0%,rgba(67,56,202,.14),transparent 70%);
+
+  --duration:200ms;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0b1020; --surface:#111831; --surface-raised:#161f3d;
+    --on-surface:#e8ecf8; --muted:#aab3cc; --subtle:#8b95b0; --border:#26304f;
+    --primary:#818cf8; --primary-hover:#a5b4fc; --on-primary:#0b1020; --primary-soft:#1e2350;
+    --success:#4ade80; --success-soft:#0f2e1c; --danger:#f87171; --danger-soft:#3a1616;
+    --focus:#a5b4fc;
+    --module-customers:#a78bfa; --module-task:#22d3ee; --module-business:#2dd4bf; --module-admin:#60a5fa;
+    --shadow-sm:0 2px 4px rgba(0,0,0,.3); --shadow-lg:0 24px 48px rgba(0,0,0,.4);
+    --hero-glow:radial-gradient(60% 60% at 50% 0%,rgba(129,140,248,.18),transparent 70%);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0b1020; --surface:#111831; --surface-raised:#161f3d;
+  --on-surface:#e8ecf8; --muted:#aab3cc; --subtle:#8b95b0; --border:#26304f;
+  --primary:#818cf8; --primary-hover:#a5b4fc; --on-primary:#0b1020; --primary-soft:#1e2350;
+  --success:#4ade80; --success-soft:#0f2e1c; --danger:#f87171; --danger-soft:#3a1616;
+  --focus:#a5b4fc;
+  --module-customers:#a78bfa; --module-task:#22d3ee; --module-business:#2dd4bf; --module-admin:#60a5fa;
+  --shadow-sm:0 2px 4px rgba(0,0,0,.3); --shadow-lg:0 24px 48px rgba(0,0,0,.4);
+  --hero-glow:radial-gradient(60% 60% at 50% 0%,rgba(129,140,248,.18),transparent 70%);
+}
+[data-module="customers"]{--accent:var(--module-customers)}
+[data-module="task"]{--accent:var(--module-task)}
+[data-module="business"]{--accent:var(--module-business)}
+[data-module="admin"]{--accent:var(--module-admin)}
+
+/* =========================================================
+   BASE
+   ========================================================= */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:calc(var(--header-h) + var(--space-md))}
+body{font-family:var(--font);font-size:var(--text-md);line-height:var(--lh-body);color:var(--on-surface);background:var(--bg);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img,svg{display:block;max-width:100%}
+a{color:inherit}
+:focus-visible{outline:var(--focus-w) solid var(--focus);outline-offset:var(--focus-w);border-radius:var(--radius-xs)}
+.container{width:100%;max-width:var(--container);margin:0 auto;padding:0 var(--gutter)}
+@media (min-width:768px){:root{--gutter:32px}}
+.skip{position:absolute;left:var(--space-md);top:-100px;background:var(--primary);color:var(--on-primary);padding:var(--space-xs) var(--space-md);border-radius:var(--radius-sm);z-index:100}
+.skip:focus{top:var(--space-md)}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+section{padding:var(--space-4xl) 0}
+@media (max-width:767px){section{padding:var(--space-3xl) 0}}
+.eyebrow{font-size:var(--text-sm);font-weight:var(--weight-semibold);color:var(--primary);letter-spacing:.04em;text-transform:uppercase;margin-bottom:var(--space-sm)}
+.h2{font-size:clamp(var(--text-2xl),4vw,var(--text-4xl));line-height:var(--lh-tight);font-weight:var(--weight-bold);letter-spacing:-.02em;text-wrap:balance}
+.lead{font-size:var(--text-lg);color:var(--muted);max-width:640px;margin-top:var(--space-md);text-wrap:pretty}
+.section-head{margin-bottom:var(--space-2xl)}
+.section-head.center{text-align:center}
+.section-head.center .lead{margin-left:auto;margin-right:auto}
+
+/* =========================================================
+   BUTTONS
+   ========================================================= */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:var(--space-xs);min-height:var(--control-h);padding:0 var(--space-lg);border-radius:var(--radius-sm);font:inherit;font-weight:var(--weight-semibold);font-size:var(--text-md);text-decoration:none;cursor:pointer;border:var(--border-w) solid transparent;transition:background var(--duration),border-color var(--duration),transform var(--duration);white-space:nowrap}
+.btn:active{transform:translateY(2px)}
+.btn-primary{background:var(--primary);color:var(--on-primary)}
+.btn-primary:hover{background:var(--primary-hover)}
+.btn-secondary{background:transparent;color:var(--on-surface);border-color:var(--border)}
+.btn-secondary:hover{background:var(--surface)}
+.btn[disabled]{opacity:.6;cursor:not-allowed;transform:none}
+.btn-block{width:100%}
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+.header{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(12px);border-bottom:var(--border-w) solid transparent;transition:border-color var(--duration)}
+.header.scrolled{border-bottom-color:var(--border)}
+.header-row{display:flex;align-items:center;justify-content:space-between;height:var(--header-h);gap:var(--space-lg)}
+.logo{display:flex;align-items:center;gap:var(--space-xs);font-weight:var(--weight-bold);font-size:var(--text-xl);text-decoration:none}
+.logo-mark{width:32px;height:32px;border-radius:var(--radius-sm);display:grid;grid-template-columns:1fr 1fr;gap:2px;padding:6px;background:var(--on-surface)}
+.logo-mark i{border-radius:2px}
+.logo-mark i:nth-child(1){background:var(--module-customers)}
+.logo-mark i:nth-child(2){background:var(--module-task)}
+.logo-mark i:nth-child(3){background:var(--module-business)}
+.logo-mark i:nth-child(4){background:var(--module-admin)}
+.nav{display:flex;gap:var(--space-xs)}
+.nav a{text-decoration:none;color:var(--muted);font-size:var(--text-sm);font-weight:var(--weight-medium);padding:var(--space-xs) var(--space-sm);border-radius:var(--radius-sm);min-height:40px;display:inline-flex;align-items:center}
+.nav a:hover{color:var(--on-surface);background:var(--surface)}
+.header-actions{display:flex;align-items:center;gap:var(--space-xs)}
+.icon-btn{width:var(--control-h);height:var(--control-h);display:inline-flex;align-items:center;justify-content:center;border-radius:var(--radius-sm);border:var(--border-w) solid var(--border);background:transparent;color:var(--on-surface);cursor:pointer}
+.icon-btn:hover{background:var(--surface)}
+.icon-btn svg{width:20px;height:20px}
+.menu-btn{display:none}
+.mobile-nav{display:none}
+@media (max-width:959px){
+  .nav,.header-actions .btn-secondary{display:none}
+  .menu-btn{display:inline-flex}
+  .mobile-nav.open{display:flex;flex-direction:column;padding:var(--space-xs) var(--gutter) var(--space-md);border-top:var(--border-w) solid var(--border);background:var(--bg)}
+  .mobile-nav a{min-height:var(--control-h);display:flex;align-items:center;text-decoration:none;font-weight:var(--weight-medium);border-bottom:var(--border-w) solid var(--border)}
+  .mobile-nav a:last-child{border-bottom:0}
+}
+@media (max-width:479px){.header-actions .btn-primary{display:none}}
+
+/* =========================================================
+   HERO
+   ========================================================= */
+.hero{position:relative;padding-top:var(--space-4xl);padding-bottom:var(--space-3xl);background:var(--hero-glow);overflow:hidden}
+.hero-copy{text-align:center;max-width:840px;margin:0 auto}
+.badge{display:inline-flex;align-items:center;gap:var(--space-xs);padding:var(--space-2xs) var(--space-sm) var(--space-2xs) var(--space-2xs);border-radius:var(--radius-full);background:var(--surface-raised);border:var(--border-w) solid var(--border);font-size:var(--text-sm);color:var(--muted);margin-bottom:var(--space-lg);box-shadow:var(--shadow-sm)}
+.badge b{background:var(--primary-soft);color:var(--primary);padding:2px var(--space-xs);border-radius:var(--radius-full);font-weight:var(--weight-semibold);font-size:var(--text-xs)}
+.h1{font-size:clamp(var(--text-3xl),6vw,var(--text-5xl));line-height:1.1;font-weight:var(--weight-bold);letter-spacing:-.03em;text-wrap:balance}
+.h1 .grad{background:linear-gradient(90deg,var(--module-customers),var(--module-task),var(--module-business),var(--module-admin));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero .lead{margin:var(--space-lg) auto 0;font-size:clamp(var(--text-md),2vw,var(--text-xl))}
+.hero-ctas{display:flex;gap:var(--space-sm);justify-content:center;flex-wrap:wrap;margin-top:var(--space-xl)}
+.hero-note{margin-top:var(--space-md);font-size:var(--text-sm);color:var(--subtle);display:flex;gap:var(--space-md);justify-content:center;flex-wrap:wrap}
+.hero-note span{display:inline-flex;align-items:center;gap:var(--space-2xs)}
+.hero-note svg{width:16px;height:16px;color:var(--success)}
+@media (max-width:479px){.hero-ctas .btn{width:100%}}
+
+/* product mock */
+.mock{margin:var(--space-3xl) auto 0;max-width:1040px;border-radius:var(--radius-lg);border:var(--border-w) solid var(--border);background:var(--surface-raised);box-shadow:var(--shadow-lg);overflow:hidden}
+.mock-bar{display:flex;align-items:center;gap:var(--space-xs);padding:var(--space-sm) var(--space-md);border-bottom:var(--border-w) solid var(--border);background:var(--surface)}
+.mock-bar i{width:12px;height:12px;border-radius:50%;background:var(--border)}
+.mock-bar span{margin-left:var(--space-sm);font-size:var(--text-xs);color:var(--subtle)}
+.mock-body{display:grid;grid-template-columns:200px 1fr;min-height:360px}
+.mock-side{border-right:var(--border-w) solid var(--border);padding:var(--space-md);display:flex;flex-direction:column;gap:var(--space-2xs)}
+.mock-nav{display:flex;align-items:center;gap:var(--space-xs);padding:var(--space-xs) var(--space-sm);border-radius:var(--radius-sm);font-size:var(--text-sm);color:var(--muted)}
+.mock-nav i{width:10px;height:10px;border-radius:var(--radius-xs);background:var(--accent)}
+.mock-nav.active{background:var(--surface);color:var(--on-surface);font-weight:var(--weight-semibold)}
+.mock-main{padding:var(--space-lg);display:flex;flex-direction:column;gap:var(--space-md)}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--space-sm)}
+.kpi{border:var(--border-w) solid var(--border);border-radius:var(--radius-md);padding:var(--space-sm) var(--space-md);border-top:4px solid var(--accent)}
+.kpi small{display:block;font-size:var(--text-xs);color:var(--subtle)}
+.kpi strong{font-size:var(--text-xl);font-variant-numeric:tabular-nums}
+.mock-row{display:grid;grid-template-columns:2fr 1fr;gap:var(--space-sm);flex:1}
+.panel{border:var(--border-w) solid var(--border);border-radius:var(--radius-md);padding:var(--space-md)}
+.panel h4{font-size:var(--text-sm);font-weight:var(--weight-semibold);margin-bottom:var(--space-sm)}
+.bars{display:flex;align-items:flex-end;gap:var(--space-xs);height:120px}
+.bars i{flex:1;border-radius:var(--radius-xs) var(--radius-xs) 0 0;background:var(--module-business);opacity:.85}
+.bars i:nth-child(even){background:var(--module-customers)}
+.tasks{display:flex;flex-direction:column;gap:var(--space-xs)}
+.task{display:flex;align-items:center;gap:var(--space-xs);font-size:var(--text-xs);color:var(--muted)}
+.task i{width:16px;height:16px;border-radius:var(--radius-xs);border:var(--focus-w) solid var(--module-task);flex:none}
+.task.done i{background:var(--module-task)}
+.task.done span{text-decoration:line-through}
+@media (max-width:767px){
+  .mock-body{grid-template-columns:1fr}
+  .mock-side{display:none}
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .mock-row{grid-template-columns:1fr}
+}
+
+/* =========================================================
+   PROBLEM → SOLUTION strip
+   ========================================================= */
+.strip{padding:var(--space-2xl) 0;border-top:var(--border-w) solid var(--border);border-bottom:var(--border-w) solid var(--border);background:var(--surface)}
+.strip-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-lg)}
+.strip-item{display:flex;gap:var(--space-sm);align-items:flex-start}
+.strip-item svg{width:24px;height:24px;flex:none;color:var(--primary);margin-top:2px}
+.strip-item strong{display:block;font-size:var(--text-md)}
+.strip-item p{font-size:var(--text-sm);color:var(--muted)}
+@media (max-width:767px){.strip-grid{grid-template-columns:1fr}}
+
+/* =========================================================
+   MODULES
+   ========================================================= */
+.modules{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--space-lg)}
+.module{position:relative;padding:var(--space-xl);border-radius:var(--radius-lg);border:var(--border-w) solid var(--border);background:var(--surface-raised);transition:border-color var(--duration),box-shadow var(--duration),transform var(--duration);overflow:hidden}
+.module::before{content:"";position:absolute;inset:0 0 auto 0;height:4px;background:var(--accent)}
+.module:hover{border-color:var(--accent);box-shadow:var(--shadow-lg);transform:translateY(-4px)}
+.module-icon{width:48px;height:48px;border-radius:var(--radius-md);display:grid;place-items:center;background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent);margin-bottom:var(--space-md)}
+.module-icon svg{width:24px;height:24px}
+.module h3{font-size:var(--text-xl);font-weight:var(--weight-semibold);margin-bottom:var(--space-xs)}
+.module > p{color:var(--muted)}
+.module ul{list-style:none;margin-top:var(--space-md);display:flex;flex-direction:column;gap:var(--space-xs)}
+.module li{display:flex;gap:var(--space-xs);font-size:var(--text-sm)}
+.module li svg{width:20px;height:20px;flex:none;color:var(--accent)}
+@media (max-width:479px){.plan{padding:var(--space-lg)}.plan-tag{left:var(--space-lg)}}
+@media (max-width:767px){.modules{grid-template-columns:1fr}.module{padding:var(--space-lg)}}
+
+/* =========================================================
+   STEPS
+   ========================================================= */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-lg);counter-reset:step;list-style:none}
+.step{padding:var(--space-lg);border-radius:var(--radius-lg);background:var(--surface)}
+.step::before{counter-increment:step;content:counter(step);display:grid;place-items:center;width:40px;height:40px;border-radius:var(--radius-full);background:var(--primary);color:var(--on-primary);font-weight:var(--weight-bold);margin-bottom:var(--space-md)}
+.step h3{font-size:var(--text-lg);font-weight:var(--weight-semibold);margin-bottom:var(--space-xs)}
+.step p{color:var(--muted);font-size:var(--text-sm)}
+@media (max-width:767px){.steps{grid-template-columns:1fr}}
+
+/* =========================================================
+   SECURITY
+   ========================================================= */
+.security{background:var(--surface)}
+.sec-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-3xl);align-items:center}
+.sec-list{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md)}
+.sec-card{padding:var(--space-lg);border-radius:var(--radius-md);background:var(--surface-raised);border:var(--border-w) solid var(--border)}
+.sec-card svg{width:24px;height:24px;color:var(--primary);margin-bottom:var(--space-sm)}
+.sec-card strong{display:block;margin-bottom:var(--space-2xs)}
+.sec-card p{font-size:var(--text-sm);color:var(--muted)}
+@media (max-width:959px){.sec-grid{grid-template-columns:1fr;gap:var(--space-2xl)}}
+@media (max-width:479px){.sec-list{grid-template-columns:1fr}}
+
+/* =========================================================
+   PRICING
+   ========================================================= */
+.toggle{display:inline-flex;padding:var(--space-2xs);border-radius:var(--radius-full);background:var(--surface);border:var(--border-w) solid var(--border);margin-top:var(--space-lg)}
+.toggle button{min-height:40px;padding:0 var(--space-md);border:0;border-radius:var(--radius-full);background:transparent;font:inherit;font-size:var(--text-sm);font-weight:var(--weight-medium);color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;gap:var(--space-xs)}
+.toggle button[aria-pressed="true"]{background:var(--surface-raised);color:var(--on-surface);box-shadow:var(--shadow-sm)}
+.toggle em{font-style:normal;font-size:var(--text-xs);color:var(--success);background:var(--success-soft);padding:2px var(--space-xs);border-radius:var(--radius-full)}
+.plans{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-lg);align-items:stretch}
+.plan{display:flex;flex-direction:column;padding:var(--space-xl);border-radius:var(--radius-lg);border:var(--border-w) solid var(--border);background:var(--surface-raised)}
+.plan.featured{border:var(--focus-w) solid var(--primary);box-shadow:var(--shadow-lg);position:relative}
+.plan-tag{position:absolute;top:-14px;left:var(--space-xl);background:var(--primary);color:var(--on-primary);font-size:var(--text-xs);font-weight:var(--weight-semibold);padding:var(--space-2xs) var(--space-sm);border-radius:var(--radius-full)}
+.plan h3{font-size:var(--text-lg);font-weight:var(--weight-semibold)}
+.plan .desc{font-size:var(--text-sm);color:var(--muted);margin-top:var(--space-2xs);min-height:44px}
+.price{margin:var(--space-lg) 0;display:flex;align-items:baseline;gap:var(--space-2xs);flex-wrap:wrap}
+.price strong{font-size:var(--text-4xl);font-weight:var(--weight-bold);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.price strong.custom{font-size:var(--text-3xl)}
+.price span{color:var(--subtle);font-size:var(--text-sm)}
+.plan ul{list-style:none;display:flex;flex-direction:column;gap:var(--space-sm);margin:var(--space-lg) 0 0;font-size:var(--text-sm)}
+.plan li{display:flex;gap:var(--space-xs)}
+.plan li svg{width:20px;height:20px;flex:none;color:var(--success)}
+@media (max-width:959px){.plans{grid-template-columns:minmax(0,1fr);max-width:480px;margin:0 auto}}
+
+/* =========================================================
+   FAQ
+   ========================================================= */
+.faq{max-width:800px;margin:0 auto;display:flex;flex-direction:column;gap:var(--space-sm)}
+.faq details{border:var(--border-w) solid var(--border);border-radius:var(--radius-md);background:var(--surface-raised)}
+.faq summary{list-style:none;cursor:pointer;padding:var(--space-md) var(--space-lg);min-height:56px;display:flex;align-items:center;justify-content:space-between;gap:var(--space-md);font-weight:var(--weight-semibold)}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary svg{width:20px;height:20px;flex:none;transition:transform var(--duration);color:var(--subtle)}
+.faq details[open] summary svg{transform:rotate(45deg)}
+.faq details p{padding:0 var(--space-lg) var(--space-lg);color:var(--muted)}
+
+/* =========================================================
+   CTA + FORM
+   ========================================================= */
+.cta-box{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-2xl);padding:var(--space-3xl);border-radius:var(--radius-xl);background:var(--surface);border:var(--border-w) solid var(--border);align-items:start}
+.cta-box .h2{margin-bottom:var(--space-md)}
+.cta-points{list-style:none;margin-top:var(--space-lg);display:flex;flex-direction:column;gap:var(--space-sm)}
+.cta-points li{display:flex;gap:var(--space-xs);color:var(--muted)}
+.cta-points svg{width:20px;height:20px;flex:none;color:var(--primary);margin-top:2px}
+.form{display:flex;flex-direction:column;gap:var(--space-md);background:var(--surface-raised);padding:var(--space-lg);border-radius:var(--radius-lg);border:var(--border-w) solid var(--border)}
+.field{display:flex;flex-direction:column;gap:var(--space-2xs)}
+.field label{font-size:var(--text-sm);font-weight:var(--weight-medium)}
+.field label .opt{color:var(--subtle);font-weight:var(--weight-regular)}
+.input{min-height:var(--control-h);padding:0 var(--space-md);border-radius:var(--radius-sm);border:var(--border-w) solid var(--border);background:var(--bg);color:var(--on-surface);font:inherit;transition:border-color var(--duration)}
+.input:hover{border-color:var(--subtle)}
+.input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 var(--focus-w) color-mix(in srgb,var(--primary) 30%,transparent)}
+.input[aria-invalid="true"]{border-color:var(--danger)}
+.err{display:none;align-items:center;gap:var(--space-2xs);font-size:var(--text-xs);color:var(--danger)}
+.err svg{width:16px;height:16px;flex:none}
+.input[aria-invalid="true"] + .err{display:flex}
+.form-legal{font-size:var(--text-xs);color:var(--subtle)}
+.alert{display:none;gap:var(--space-sm);padding:var(--space-md);border-radius:var(--radius-md);font-size:var(--text-sm)}
+.alert svg{width:20px;height:20px;flex:none}
+.alert.show{display:flex}
+.alert-success{background:var(--success-soft);color:var(--success)}
+.alert-error{background:var(--danger-soft);color:var(--danger)}
+.alert strong{display:block}
+.spinner{width:20px;height:20px;border-radius:50%;border:var(--focus-w) solid currentColor;border-right-color:transparent;animation:spin 800ms linear infinite;display:none}
+.btn.loading .spinner{display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (max-width:959px){.cta-box{grid-template-columns:1fr;padding:var(--space-xl) var(--space-lg)}}
+@media (max-width:479px){.cta-box{padding:var(--space-lg) var(--space-md)}.form{padding:var(--space-md)}}
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+.footer{padding:var(--space-3xl) 0 var(--space-xl);border-top:var(--border-w) solid var(--border)}
+.footer-grid{display:grid;grid-template-columns:2fr repeat(3,1fr);gap:var(--space-xl)}
+.footer p{color:var(--muted);font-size:var(--text-sm);margin-top:var(--space-sm);max-width:320px}
+.footer h4{font-size:var(--text-sm);font-weight:var(--weight-semibold);margin-bottom:var(--space-sm)}
+.footer ul{list-style:none;display:flex;flex-direction:column;gap:var(--space-xs)}
+.footer ul a{color:var(--muted);text-decoration:none;font-size:var(--text-sm)}
+.footer ul a:hover{color:var(--on-surface);text-decoration:underline}
+.footer-bottom{margin-top:var(--space-2xl);padding-top:var(--space-lg);border-top:var(--border-w) solid var(--border);display:flex;justify-content:space-between;flex-wrap:wrap;gap:var(--space-sm);font-size:var(--text-xs);color:var(--subtle)}
+@media (max-width:767px){.footer-grid{grid-template-columns:1fr 1fr}.footer-grid > div:first-child{grid-column:1 / -1}}
+
+/* reveal */
+.reveal{opacity:0;transform:translateY(16px);transition:opacity 600ms ease,transform 600ms ease}
+.reveal.vis{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{transition:none!important;animation:none!important}
+  .reveal{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Перейти к содержимому</a>
+
+<!-- SVG icon sprite -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-check-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m8 12 3 3 5-6"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></symbol>
+  <symbol id="i-tasks" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 14 4-4 4 4 6-6"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+  <symbol id="i-server" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><path d="M6 6h.01M6 18h.01"/></symbol>
+  <symbol id="i-log" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8"/></symbol>
+  <symbol id="i-layers" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 10 5-10 5L2 7z"/><path d="m2 17 10 5 10-5M2 12l10 5 10-5"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+</svg>
+
+<header class="header" id="header">
+  <div class="container header-row">
+    <a class="logo" href="#top" aria-label="Ядро — на главную">
+      <span class="logo-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+      Ядро
+    </a>
+    <nav class="nav" aria-label="Основная навигация">
+      <a href="#modules">Модули</a>
+      <a href="#how">Как начать</a>
+      <a href="#security">Безопасность</a>
+      <a href="#pricing">Тарифы</a>
+      <a href="#faq">Вопросы</a>
+    </nav>
+    <div class="header-actions">
+      <button class="icon-btn" id="themeBtn" type="button" aria-label="Переключить тему">
+        <svg aria-hidden="true"><use href="#i-moon"/></svg>
+      </button>
+      <a class="btn btn-secondary" href="#demo">Войти</a>
+      <a class="btn btn-primary" href="#demo">Запросить демо</a>
+      <button class="icon-btn menu-btn" id="menuBtn" type="button" aria-label="Открыть меню" aria-expanded="false" aria-controls="mobileNav">
+        <svg aria-hidden="true"><use href="#i-menu"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav class="mobile-nav" id="mobileNav" aria-label="Мобильная навигация">
+    <a href="#modules">Модули</a>
+    <a href="#how">Как начать</a>
+    <a href="#security">Безопасность</a>
+    <a href="#pricing">Тарифы</a>
+    <a href="#faq">Вопросы</a>
+    <a href="#demo">Запросить демо</a>
+  </nav>
+</header>
+
+<main id="main">
+  <!-- HERO -->
+  <section class="hero" id="top" aria-labelledby="hero-title">
+    <div class="container">
+      <div class="hero-copy">
+        <span class="badge"><b>Новое</b> Отчёты по воронке продаж в реальном времени</span>
+        <h1 class="h1" id="hero-title">Клиенты, задачи и бизнес — <span class="grad">в одной системе</span></h1>
+        <p class="lead">Ядро объединяет CRM, управление задачами и аналитику. Команда перестаёт терять заявки в мессенджерах и таблицах, а руководитель видит всю картину на одном экране.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#demo">Запросить демо</a>
+          <a class="btn btn-secondary" href="#modules">Посмотреть модули</a>
+        </div>
+        <div class="hero-note">
+          <span><svg aria-hidden="true"><use href="#i-check-circle"/></svg>14 дней бесплатно</span>
+          <span><svg aria-hidden="true"><use href="#i-check-circle"/></svg>Без карты</span>
+          <span><svg aria-hidden="true"><use href="#i-check-circle"/></svg>Поддержка на русском и таджикском</span>
+        </div>
+      </div>
+
+      <div class="mock reveal" role="img" aria-label="Пример интерфейса: панель с показателями клиентов, задач, выручки и пользователей, график продаж и список задач">
+        <div class="mock-bar" aria-hidden="true"><i></i><i></i><i></i><span>app.yadro.tj / Обзор</span></div>
+        <div class="mock-body" aria-hidden="true">
+          <div class="mock-side">
+            <div class="mock-nav active" data-module="business"><i></i>Обзор</div>
+            <div class="mock-nav" data-module="customers"><i></i>Клиенты</div>
+            <div class="mock-nav" data-module="task"><i></i>Задачи</div>
+            <div class="mock-nav" data-module="business"><i></i>Бизнес</div>
+            <div class="mock-nav" data-module="admin"><i></i>Администрирование</div>
+          </div>
+          <div class="mock-main">
+            <div class="kpis">
+              <div class="kpi" data-module="customers"><small>Клиенты</small><strong>1 284</strong></div>
+              <div class="kpi" data-module="task"><small>Задачи</small><strong>86</strong></div>
+              <div class="kpi" data-module="business"><small>Выручка, TJS</small><strong>412 k</strong></div>
+              <div class="kpi" data-module="admin"><small>Сотрудники</small><strong>24</strong></div>
+            </div>
+            <div class="mock-row">
+              <div class="panel">
+                <h4>Продажи по месяцам</h4>
+                <div class="bars"><i style="height:40%"></i><i style="height:56%"></i><i style="height:48%"></i><i style="height:64%"></i><i style="height:60%"></i><i style="height:72%"></i><i style="height:68%"></i><i style="height:84%"></i><i style="height:78%"></i><i style="height:92%"></i></div>
+              </div>
+              <div class="panel">
+                <h4>Мои задачи</h4>
+                <div class="tasks">
+                  <div class="task done"><i></i><span>Позвонить клиенту</span></div>
+                  <div class="task done"><i></i><span>Отправить договор</span></div>
+                  <div class="task"><i></i><span>Согласовать лимит</span></div>
+                  <div class="task"><i></i><span>Отчёт за квартал</span></div>
+                  <div class="task"><i></i><span>Встреча с командой</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROBLEM STRIP -->
+  <div class="strip">
+    <div class="container strip-grid">
+      <div class="strip-item"><svg aria-hidden="true"><use href="#i-layers"/></svg><div><strong>Вместо пяти сервисов — один</strong><p>CRM, трекер задач, отчёты и доступы в одном окне.</p></div></div>
+      <div class="strip-item"><svg aria-hidden="true"><use href="#i-clock"/></svg><div><strong>Запуск за один день</strong><p>Импорт клиентов из Excel и готовые шаблоны процессов.</p></div></div>
+      <div class="strip-item"><svg aria-hidden="true"><use href="#i-globe"/></svg><div><strong>Сделано для региона</strong><p>Сомони, местные форматы документов, русский и таджикский.</p></div></div>
+    </div>
+  </div>
+
+  <!-- MODULES -->
+  <section id="modules" aria-labelledby="modules-title">
+    <div class="container">
+      <div class="section-head center reveal">
+        <p class="eyebrow">Модули</p>
+        <h2 class="h2" id="modules-title">Четыре модуля — одна логика работы</h2>
+        <p class="lead">Каждый модуль отмечен своим цветом, чтобы в системе было легко ориентироваться. Подключайте только то, что нужно сейчас.</p>
+      </div>
+      <div class="modules">
+        <article class="module reveal" data-module="customers">
+          <div class="module-icon"><svg aria-hidden="true"><use href="#i-users"/></svg></div>
+          <h3>Клиенты</h3>
+          <p>Единая карточка клиента: контакты, сделки, документы и вся история общения.</p>
+          <ul>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Воронка продаж с этапами под ваш процесс</li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Заявки из Telegram, сайта и почты</li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Сегменты и напоминания о повторных касаниях</li>
+          </ul>
+        </article>
+        <article class="module reveal" data-module="task">
+          <div class="module-icon"><svg aria-hidden="true"><use href="#i-tasks"/></svg></div>
+          <h3>Задачи</h3>
+          <p>Поручения, сроки и ответственные. Видно, кто чем занят и что горит.</p>
+          <ul>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Канбан, список и календарь</li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Задачи прямо из карточки клиента</li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Уведомления о просрочках</li>
+          </ul>
+        </article>
+        <article class="module reveal" data-module="business">
+          <div class="module-icon"><svg aria-hidden="true"><use href="#i-chart"/></svg></div>
+          <h3>Бизнес</h3>
+          <p>Выручка, конверсия и нагрузка команды — в отчётах, которые обновляются сами.</p>
+          <ul>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Дашборды для руководителя</li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Планы продаж и их выполнение</li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Выгрузка в Excel и PDF</li>
+          </ul>
+        </article>
+        <article class="module reveal" data-module="admin">
+          <div class="module-icon"><svg aria-hidden="true"><use href="#i-settings"/></svg></div>
+          <h3>Администрирование</h3>
+          <p>Роли, права доступа и настройки компании. Каждый видит только своё.</p>
+          <ul>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Гибкие роли и филиалы</li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Журнал действий пользователей</li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Единый вход и двухфакторная защита</li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW -->
+  <section id="how" aria-labelledby="how-title" style="padding-top:0">
+    <div class="container">
+      <div class="section-head center reveal">
+        <p class="eyebrow">Как начать</p>
+        <h2 class="h2" id="how-title">От заявки до работы — три шага</h2>
+      </div>
+      <ol class="steps">
+        <li class="step reveal"><h3>Покажем систему</h3><p>30-минутная демонстрация на ваших процессах. Ответим на вопросы и подберём модули.</p></li>
+        <li class="step reveal"><h3>Перенесём данные</h3><p>Импортируем клиентов и сделки из Excel или старой CRM. Настроим роли и воронку.</p></li>
+        <li class="step reveal"><h3>Обучим команду</h3><p>Короткое обучение для сотрудников и менеджер поддержки на первый месяц.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- SECURITY -->
+  <section class="security" id="security" aria-labelledby="sec-title">
+    <div class="container sec-grid">
+      <div class="reveal">
+        <p class="eyebrow">Безопасность</p>
+        <h2 class="h2" id="sec-title">Данные клиентов под защитой</h2>
+        <p class="lead">Мы работаем с финансовыми и персональными данными, поэтому безопасность заложена в архитектуру, а не добавлена потом.</p>
+      </div>
+      <div class="sec-list">
+        <div class="sec-card reveal"><svg aria-hidden="true"><use href="#i-lock"/></svg><strong>Шифрование</strong><p>TLS при передаче и шифрование данных при хранении.</p></div>
+        <div class="sec-card reveal"><svg aria-hidden="true"><use href="#i-server"/></svg><strong>Размещение</strong><p>Облако или установка на ваших серверах.</p></div>
+        <div class="sec-card reveal"><svg aria-hidden="true"><use href="#i-shield"/></svg><strong>Доступы</strong><p>Роли, двухфакторная аутентификация и единый вход.</p></div>
+        <div class="sec-card reveal"><svg aria-hidden="true"><use href="#i-log"/></svg><strong>Аудит</strong><p>Журнал всех действий для проверок и разборов.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section id="pricing" aria-labelledby="pricing-title">
+    <div class="container">
+      <div class="section-head center reveal">
+        <p class="eyebrow">Тарифы</p>
+        <h2 class="h2" id="pricing-title">Прозрачные цены за пользователя</h2>
+        <p class="lead">Начните с бесплатного периода и переходите на платный тариф, когда будете готовы.</p>
+        <div class="toggle" role="group" aria-label="Период оплаты">
+          <button type="button" data-period="month" aria-pressed="true">Помесячно</button>
+          <button type="button" data-period="year" aria-pressed="false">За год <em>−20%</em></button>
+        </div>
+      </div>
+      <div class="plans">
+        <article class="plan reveal">
+          <h3>Старт</h3>
+          <p class="desc">Для небольших команд, которые наводят порядок в продажах.</p>
+          <div class="price"><strong data-month="90" data-year="72">90</strong><span>TJS / пользователь в месяц</span></div>
+          <a class="btn btn-secondary btn-block" href="#demo" data-plan="Старт">Начать бесплатно</a>
+          <ul>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Модули «Клиенты» и «Задачи»</li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>До 10 пользователей</li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Импорт из Excel</li>
+          </ul>
+        </article>
+        <article class="plan featured reveal">
+          <span class="plan-tag">Популярный</span>
+          <h3>Бизнес</h3>
+          <p class="desc">Для растущих компаний с отделами и филиалами.</p>
+          <div class="price"><strong data-month="160" data-year="128">160</strong><span>TJS / пользователь в месяц</span></div>
+          <a class="btn btn-primary btn-block" href="#demo" data-plan="Бизнес">Запросить демо</a>
+          <ul>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Все четыре модуля</li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Дашборды и планы продаж</li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Роли, филиалы, журнал действий</li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Приоритетная поддержка</li>
+          </ul>
+        </article>
+        <article class="plan reveal">
+          <h3>Корпоративный</h3>
+          <p class="desc">Для банков и крупных компаний с особыми требованиями.</p>
+          <div class="price"><strong class="custom">Индивидуально</strong></div>
+          <a class="btn btn-secondary btn-block" href="#demo" data-plan="Корпоративный">Связаться с нами</a>
+          <ul>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Установка на ваших серверах</li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Интеграции с АБС и 1С</li>
+            <li><svg aria-hidden="true"><use href="#i-check"/></svg>SLA и выделенный менеджер</li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq" aria-labelledby="faq-title" style="padding-top:0">
+    <div class="container">
+      <div class="section-head center reveal">
+        <p class="eyebrow">Вопросы</p>
+        <h2 class="h2" id="faq-title">Частые вопросы</h2>
+      </div>
+      <div class="faq">
+        <details><summary>Сколько времени занимает внедрение?<svg aria-hidden="true"><use href="#i-plus"/></svg></summary><p>Небольшая команда начинает работать в тот же день. Для компаний с филиалами и интеграциями внедрение обычно занимает от двух до четырёх недель.</p></details>
+        <details><summary>Можно ли перенести данные из Excel или другой CRM?<svg aria-hidden="true"><use href="#i-plus"/></svg></summary><p>Да. Мы поможем импортировать клиентов, сделки и историю. Для типовых форматов есть готовые шаблоны импорта.</p></details>
+        <details><summary>Где хранятся данные?<svg aria-hidden="true"><use href="#i-plus"/></svg></summary><p>В облаке или на ваших серверах — на выбор. Для корпоративных клиентов доступна установка в собственном контуре.</p></details>
+        <details><summary>Что будет после бесплатного периода?<svg aria-hidden="true"><use href="#i-plus"/></svg></summary><p>Мы напомним заранее. Если не перейдёте на платный тариф, аккаунт перейдёт в режим только для чтения, и данные можно будет выгрузить.</p></details>
+        <details><summary>Есть ли мобильное приложение?<svg aria-hidden="true"><use href="#i-plus"/></svg></summary><p>Веб-версия адаптирована под телефон. Мобильные приложения для iOS и Android — в разработке.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA / DEMO FORM -->
+  <section id="demo" aria-labelledby="demo-title" style="padding-top:0">
+    <div class="container">
+      <div class="cta-box reveal">
+        <div>
+          <p class="eyebrow">Демо</p>
+          <h2 class="h2" id="demo-title">Посмотрите Ядро на своих процессах</h2>
+          <p class="lead">Оставьте контакты — менеджер свяжется в течение рабочего дня и подберёт удобное время.</p>
+          <ul class="cta-points">
+            <li><svg aria-hidden="true"><use href="#i-check-circle"/></svg>Демонстрация 30 минут онлайн или в офисе</li>
+            <li><svg aria-hidden="true"><use href="#i-check-circle"/></svg>Расчёт стоимости под вашу команду</li>
+            <li><svg aria-hidden="true"><use href="#i-check-circle"/></svg>Без обязательств</li>
+          </ul>
+        </div>
+        <!-- data-endpoint: укажите URL обработчика формы (Formspree, свой API и т.п.) -->
+        <form class="form" id="demoForm" novalidate data-endpoint="">
+          <div class="field">
+            <label for="f-name">Имя</label>
+            <input class="input" id="f-name" name="name" autocomplete="name" required aria-describedby="e-name">
+            <span class="err" id="e-name"><svg aria-hidden="true"><use href="#i-alert"/></svg>Укажите, как к вам обращаться</span>
+          </div>
+          <div class="field">
+            <label for="f-company">Компания</label>
+            <input class="input" id="f-company" name="company" autocomplete="organization" required aria-describedby="e-company">
+            <span class="err" id="e-company"><svg aria-hidden="true"><use href="#i-alert"/></svg>Укажите название компании</span>
+          </div>
+          <div class="field">
+            <label for="f-phone">Телефон</label>
+            <input class="input" id="f-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+992 __ ___ __ __" required aria-describedby="e-phone">
+            <span class="err" id="e-phone"><svg aria-hidden="true"><use href="#i-alert"/></svg>Введите номер в формате +992 XX XXX XX XX</span>
+          </div>
+          <div class="field">
+            <label for="f-team">Размер команды <span class="opt">(необязательно)</span></label>
+            <select class="input" id="f-team" name="team">
+              <option value="">Выберите</option>
+              <option>1–10</option><option>11–50</option><option>51–200</option><option>Более 200</option>
+            </select>
+          </div>
+          <input type="hidden" name="plan" id="f-plan">
+          <div class="alert alert-error" id="formError" role="alert"><svg aria-hidden="true"><use href="#i-alert"/></svg><div><strong>Не удалось отправить заявку</strong>Проверьте подключение к интернету и попробуйте ещё раз.</div></div>
+          <div class="alert alert-success" id="formSuccess" role="status" tabindex="-1"><svg aria-hidden="true"><use href="#i-check-circle"/></svg><div><strong>Заявка отправлена</strong>Менеджер свяжется с вами в течение рабочего дня.</div></div>
+          <button class="btn btn-primary btn-block" type="submit" id="submitBtn"><span class="spinner" aria-hidden="true"></span><span class="label">Запросить демо</span></button>
+          <p class="form-legal">Нажимая кнопку, вы соглашаетесь на обработку персональных данных.</p>
+        </form>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <a class="logo" href="#top"><span class="logo-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>Ядро</a>
+        <p>Платформа для работы с клиентами, задачами и бизнес-процессами.</p>
+      </div>
+      <div><h4>Продукт</h4><ul><li><a href="#modules">Модули</a></li><li><a href="#pricing">Тарифы</a></li><li><a href="#security">Безопасность</a></li></ul></div>
+      <div><h4>Компания</h4><ul><li><a href="#demo">Контакты</a></li><li><a href="#faq">Вопросы</a></li></ul></div>
+      <div><h4>Документы</h4><ul><li><a href="#">Политика конфиденциальности</a></li><li><a href="#">Условия использования</a></li></ul></div>
+    </div>
+    <div class="footer-bottom"><span>© <span id="year">2026</span> Ядро. Все права защищены.</span><span>Душанбе, Таджикистан</span></div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var root=document.documentElement;
+
+  // theme
+  var themeBtn=document.getElementById('themeBtn');
+  function isDark(){var t=root.getAttribute('data-theme');return t?t==='dark':matchMedia('(prefers-color-scheme: dark)').matches}
+  function syncThemeIcon(){themeBtn.querySelector('use').setAttribute('href',isDark()?'#i-sun':'#i-moon');themeBtn.setAttribute('aria-label',isDark()?'Включить светлую тему':'Включить тёмную тему')}
+  try{var saved=localStorage.getItem('yadro-theme');if(saved)root.setAttribute('data-theme',saved)}catch(e){}
+  syncThemeIcon();
+  themeBtn.addEventListener('click',function(){var next=isDark()?'light':'dark';root.setAttribute('data-theme',next);try{localStorage.setItem('yadro-theme',next)}catch(e){}syncThemeIcon()});
+
+  // header border + mobile menu
+  var header=document.getElementById('header');
+  addEventListener('scroll',function(){header.classList.toggle('scrolled',scrollY>8)},{passive:true});
+  var menuBtn=document.getElementById('menuBtn'),mobileNav=document.getElementById('mobileNav');
+  function setMenu(open){mobileNav.classList.toggle('open',open);menuBtn.setAttribute('aria-expanded',open);menuBtn.setAttribute('aria-label',open?'Закрыть меню':'Открыть меню')}
+  menuBtn.addEventListener('click',function(){setMenu(!mobileNav.classList.contains('open'))});
+  mobileNav.addEventListener('click',function(e){if(e.target.tagName==='A')setMenu(false)});
+  addEventListener('keydown',function(e){if(e.key==='Escape'&&mobileNav.classList.contains('open')){setMenu(false);menuBtn.focus()}});
+
+  // reveal on scroll
+  var els=document.querySelectorAll('.reveal');
+  if('IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(es){es.forEach(function(en){if(en.isIntersecting){en.target.classList.add('vis');io.unobserve(en.target)}})},{rootMargin:'0px 0px -48px 0px'});
+    els.forEach(function(el){io.observe(el)});
+  }else els.forEach(function(el){el.classList.add('vis')});
+
+  // pricing toggle
+  var toggles=document.querySelectorAll('.toggle button');
+  toggles.forEach(function(b){b.addEventListener('click',function(){
+    var p=b.dataset.period;
+    toggles.forEach(function(x){x.setAttribute('aria-pressed',x===b)});
+    document.querySelectorAll('.price strong[data-month]').forEach(function(s){s.textContent=s.dataset[p]});
+  })});
+
+  // remember which plan CTA was clicked
+  document.querySelectorAll('[data-plan]').forEach(function(a){a.addEventListener('click',function(){document.getElementById('f-plan').value=a.dataset.plan})});
+
+  // demo form
+  var form=document.getElementById('demoForm'),btn=document.getElementById('submitBtn');
+  var okBox=document.getElementById('formSuccess'),errBox=document.getElementById('formError');
+  var rules={
+    name:function(v){return v.trim().length>=2},
+    company:function(v){return v.trim().length>=2},
+    phone:function(v){return v.replace(/\D/g,'').length>=9}
+  };
+  function check(input){var ok=rules[input.name](input.value);input.setAttribute('aria-invalid',!ok);return ok}
+  Object.keys(rules).forEach(function(n){var i=form.elements[n];i.addEventListener('blur',function(){if(i.value)check(i)});i.addEventListener('input',function(){if(i.getAttribute('aria-invalid')==='true')check(i)})});
+
+  form.addEventListener('submit',function(e){
+    e.preventDefault();
+    okBox.classList.remove('show');errBox.classList.remove('show');
+    var firstBad=null;
+    Object.keys(rules).forEach(function(n){var i=form.elements[n];if(!check(i)&&!firstBad)firstBad=i});
+    if(firstBad){firstBad.focus();return}
+    btn.disabled=true;btn.classList.add('loading');btn.querySelector('.label').textContent='Отправляем…';
+    var endpoint=form.dataset.endpoint;
+    var req=endpoint
+      ?fetch(endpoint,{method:'POST',headers:{'Accept':'application/json'},body:new FormData(form)}).then(function(r){if(!r.ok)throw new Error(r.status)})
+      :new Promise(function(res){setTimeout(res,800)}); // демо-режим без обработчика
+    req.then(function(){
+      form.reset();Object.keys(rules).forEach(function(n){form.elements[n].removeAttribute('aria-invalid')});
+      okBox.classList.add('show');okBox.focus();
+    }).catch(function(){errBox.classList.add('show')})
+    .finally(function(){btn.disabled=false;btn.classList.remove('loading');btn.querySelector('.label').textContent='Запросить демо'});
+  });
+
+  document.getElementById('year').textContent=new Date().getFullYear();
+})();
+</script>
+</body>
+</html>
