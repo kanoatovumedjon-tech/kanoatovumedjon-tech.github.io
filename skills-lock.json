@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "skills": {
+    "ui-skills-root": {
+      "source": "ibelick/ui-skills",
+      "sourceType": "github",
+      "skillPath": "skills/ui-skills-root/SKILL.md",
+      "computedHash": "1eb4241459d13315bb10930554de1ad20bf74568bd5d0f10f4cc0edee1b72439"
+    }
+  }
+}
